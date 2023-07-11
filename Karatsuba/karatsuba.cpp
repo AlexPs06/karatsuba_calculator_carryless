@@ -212,8 +212,6 @@ void karatsuba_multiply_avx(const uint32_t* num1, const uint32_t* num2, uint32_t
 
 
 int main() {
-    // alignas(32) uint32_t num1[8] =  {0x95db117, 0xb32cfcc5, x, x,   0, 0, 0, 0};
-    // alignas(32) uint32_t num2[8] =  {        0,          2, x, x,   0, 0, 0, 0};
 // https://www.rapidtables.com/convert/number/decimal-to-hex.html
     alignas(32) uint32_t num1[8] =  {0x95db117, 0xb32cfcc5, 0x95db117, 0xb32cfcc5, 0,0,0,0};
     alignas(32) uint32_t num2[8] =  {0x95db117, 0xb32cfcc5, 0x95db117, 0xb32cfcc5, 0,0,0,0};
@@ -221,7 +219,20 @@ int main() {
 
     karatsuba_multiply_avx(num1,  num2,  result);
     // _mm256_store_si256((__m256i*)result, product);
-    __m256i product =  _mm256_loadu_si256((__m256i*)result);
+    printf("Multiplicación con karatsuba: \n");
+    
+    printf("Numero 1: \n");
+    __m256i product =  _mm256_loadu_si256((__m256i*)num1);
+    print_m256i_hex(product);
+
+    printf("Numero 2: \n");
+    product =  _mm256_loadu_si256((__m256i*)num2);
+    print_m256i_hex(product);
+    
+    
+    printf("Resultado: \n");
+    product =  _mm256_loadu_si256((__m256i*)result);
+
     print_m256i_hex(product);
 
     return 0;
