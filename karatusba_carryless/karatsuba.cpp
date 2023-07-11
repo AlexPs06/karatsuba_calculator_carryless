@@ -68,6 +68,7 @@ void karatsuba_multiply_avx_64(const uint32_t* num1, const uint32_t* num2, uint3
     // Multiplicar las partes más pequeñas
     __m128i ac = _mm_clmulepi64_si128(a, c,0);
     __m128i bd = _mm_clmulepi64_si128(b, d,0);
+    
     // Calcular (a + b) * (c + d)
     __m128i sum_ab = _mm_xor_si128(a, b);
     __m128i sum_cd = _mm_xor_si128(c, d);
@@ -79,21 +80,14 @@ void karatsuba_multiply_avx_64(const uint32_t* num1, const uint32_t* num2, uint3
     adbc = _mm_xor_si128(adbc, bd);
 
     // Desplazar y combinar los resultados
-//   57 B8 BD-D0 53 20 6B-66 27 C6 C9-5B 4C 6F 99
-//                       -66 27 c6 c9-5b 4c 6f 99
-//   57 b8 bd d0 53 20 6a e8 bf d5 66 00 00 00 00
-//   00 00 00 0d 1c 50 59 66 27 c6 c9-5b 4c 6f 99
     __m128i adbc_shifted = _mm_slli_si128(adbc, 4);
     __m128i ac_shifted = _mm_slli_si128(ac, 8);
-
 
      __m128i final_result;
     __m128i result_lo = _mm_xor_si128(adbc_shifted, bd);
     final_result = _mm_xor_si128(result_lo, ac_shifted);
 
     _mm_storeu_si128((__m128i*)result, final_result);
-
-    // print_m128i_hex(final_result);
 
 }
 
@@ -140,7 +134,6 @@ void karatsuba_multiply_avx(const uint32_t* num1, const uint32_t* num2, uint32_t
 
     __m256i sum_X1X0 = _mm256_xor_si256(X1, X0);
     __m256i sum_Y1Y0 = _mm256_xor_si256(Y1, Y0);
-    // 12 BB 62 2F 66 59 F9 8A
 
     uint32_t sum_X1X0_t[8];
     uint32_t sum_Y1Y0_t[8];
@@ -163,7 +156,6 @@ void karatsuba_multiply_avx(const uint32_t* num1, const uint32_t* num2, uint32_t
     sum_Y1Y0_t[0]=temp[0];
     sum_Y1Y0_t[1]=temp[1];
 
-
     karatsuba_multiply_avx_64(sum_X1X0_t,sum_Y1Y0_t, mul_X1X0_Y1Y0_t);
 
     __m256i mul_X1X0_Y1Y0 =  _mm256_loadu_si256((__m256i*)mul_X1X0_Y1Y0_t);
@@ -171,16 +163,11 @@ void karatsuba_multiply_avx(const uint32_t* num1, const uint32_t* num2, uint32_t
     mul_X1X0_Y1Y0 = _mm256_xor_si256(mul_X1X0_Y1Y0, X1Y1);
     mul_X1X0_Y1Y0 = _mm256_xor_si256(mul_X1X0_Y1Y0, X0Y0);
 
-    // print_m256i_hex(mul_X1X0_Y1Y0);
-
     _mm256_storeu_si256((__m256i*)&temp, mul_X1X0_Y1Y0);
     __m256i mul_X1X0_Y1Y0_shifted = _mm256_set_epi32(0,0, temp[3], temp[2], temp[1], temp[0], 0,0);
-    
 
     _mm256_storeu_si256((__m256i*)&temp, X1Y1);
     __m256i X1Y1_shifted = _mm256_set_epi32(temp[3], temp[2], temp[1], temp[0], 0,0,0,0);
-
-    // print_m256i_hex(mul_X1X0_Y1Y0_shifted);
 
     __m256i final_result = _mm256_xor_si256(mul_X1X0_Y1Y0_shifted, X0Y0);
     final_result = _mm256_xor_si256(final_result, X1Y1_shifted);
@@ -202,7 +189,20 @@ int main() {
 
     karatsuba_multiply_avx(num1,  num2,  result);
     // _mm256_store_si256((__m256i*)result, product);
-    __m256i product =  _mm256_loadu_si256((__m256i*)result);
+  
+
+    printf("Multiplicación carry less con karatsuba: \n");
+    
+    printf("Numero 1: \n");
+    __m256i product =  _mm256_loadu_si256((__m256i*)num1);
+    print_m256i_hex(product);
+
+    printf("Numero 2: \n");
+    product =  _mm256_loadu_si256((__m256i*)num2);
+    print_m256i_hex(product);
+    
+    printf("Resultado: \n");
+    product =  _mm256_loadu_si256((__m256i*)result);
     print_m256i_hex(product);
 
     return 0;

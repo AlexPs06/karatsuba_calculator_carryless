@@ -66,48 +66,18 @@ void karatsuba_multiply_avx_64(const uint32_t* num1, const uint32_t* num2, uint3
     adbc = _mm256_sub_epi64(adbc, bd);
 
     // Desplazar y combinar los resultados
-//   57 B8 BD-D0 53 20 6B-66 27 C6 C9-5B 4C 6F 99
-//                       -66 27 c6 c9-5b 4c 6f 99
-//   57 b8 bd d0 53 20 6a e8 bf d5 66 00 00 00 00
-//   00 00 00 0d 1c 50 59 66 27 c6 c9-5b 4c 6f 99
     __m256i adbc_shifted = _mm256_slli_si256(adbc, 4);
     __m256i ac_shifted = _mm256_slli_si256(ac, 8);
 
-
      __m256i final_result;
     __m256i result_lo = _mm256_add_epi64(adbc_shifted, bd);
-
-
      bool carry = check_overflow_avx(adbc_shifted, bd);
-
     if(carry){
-        // cout<<"hubo acarreo"<<endl;
-
         final_result = _mm256_add_epi64(result_lo, ac_shifted);
         final_result = _mm256_add_epi64(final_result, uno);
     }else{
         final_result = _mm256_add_epi64(result_lo, ac_shifted);
-
     }
-
-    // __m256i result_lo = _mm256_add_epi64(adbc_shifted, bd);
-    // printf("result_lo: ");
-    // result_lo =  _mm256_bslli_epi128(result_lo, 8);
-    // result_lo =  _mm256_bsrli_epi128(result_lo, 8);
-    // print_m256i_hex(result_lo);
-
-
-    // __m256i result_hi = _mm256_add_epi64(adbc_shifted, ac_shifted);
-    // printf("result_hi: ");
-    // result_hi =  _mm256_bsrli_epi128(result_hi, 8);
-    // result_hi =  _mm256_bslli_epi128(result_hi, 8);
-    // print_m256i_hex(result_hi);
-
-
-    // // __m256i result_lo = _mm256_add_epi64(ac, bd_shifted);
-    // // __m256i result_hi = _mm256_add_epi64(adbc_shifted, ac_shifted);
-    // __m256i final_result = _mm256_or_si256(result_lo, result_hi);
-
 
     _mm256_storeu_si256((__m256i*)result, final_result);
 }
@@ -232,7 +202,6 @@ int main() {
     
     printf("Resultado: \n");
     product =  _mm256_loadu_si256((__m256i*)result);
-
     print_m256i_hex(product);
 
     return 0;
